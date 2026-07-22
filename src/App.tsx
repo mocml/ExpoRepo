@@ -4,9 +4,15 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as React from 'react';
 import { useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 import { Colors } from './constants/Colors';
 import { Navigation } from './navigation';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store/store';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,29 +28,39 @@ export function App() {
   }
 
   const theme =
-    colorScheme === 'dark'
+    (colorScheme ?? 'light') === 'dark'
       ? {
-          ...DarkTheme,
-          colors: { ...DarkTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
-        }
+        ...DarkTheme,
+        colors: { ...DarkTheme.colors, primary: Colors.dark.tint },
+      }
       : {
-          ...DefaultTheme,
-          colors: { ...DefaultTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
-        };
+        ...DefaultTheme,
+        colors: { ...DefaultTheme.colors, primary: Colors.light.tint },
+      };
 
   return (
-    <Navigation
-      theme={theme}
-      linking={{
-        enabled: 'auto',
-        prefixes: [
-          // Change the scheme to match your app's scheme defined in app.json
-          'helloworld://',
-        ],
-      }}
-      onReady={() => {
-        SplashScreen.hideAsync();
-      }}
-    />
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <Navigation
+              theme={theme}
+              linking={{
+                enabled: 'auto',
+                prefixes: [
+                  // Change the scheme to match your app's scheme defined in app.json
+                  'helloworld://',
+                ],
+              }}
+              onReady={() => {
+                SplashScreen.hideAsync();
+              }}
+            />
+          </PersistGate>
+        </Provider>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
